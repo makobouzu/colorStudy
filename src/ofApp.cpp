@@ -18,6 +18,10 @@ std::vector<VertexColorPair> vertex{
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofBackground(0);
+    
+    emphasisPosition = calculation::emphasisPos(vertex);
+    emphasisColor = {255, 255, 255};
+    
 }
 
 //--------------------------------------------------------------
@@ -29,13 +33,11 @@ void ofApp::update(){
 void ofApp::draw(){
     for(auto i = 0; i < vertex.size(); ++i){
         ofSetColor(vertex.at(i).second);
-        ofDrawCircle(vertex.at(i).first, 10);
+        ofDrawSphere(vertex.at(i).first, 10);
     }
     
-    glm::vec3 emphasisPosition = calculation::emphasisPos(vertex);
-    ofColor emphasisColor = {255};
     ofSetColor(emphasisColor);
-    ofDrawCircle(emphasisPosition, 10);
+    ofDrawSphere(emphasisPosition, 10);
     
     glm::vec3 target = {mouseX, mouseY, 1.0};
     std::vector<glm::vec3> neighbor = calculation::neighborVertex(target, vertex);
@@ -43,11 +45,11 @@ void ofApp::draw(){
     glm::vec3 interPos = calculation::polygonIntersection(target, neighbor, emphasisPosition);
     ofColor  interCol1 = calculation::intersectionColor(interPos, vertex, neighbor);
     ofSetColor(interCol1);
-    ofDrawCircle(interPos, 10);
+    ofDrawSphere(interPos, 10);
 
     ofColor targetCol = calculation::targetColor(target, interPos, interCol1, emphasisPosition, emphasisColor);
     ofSetColor(targetCol);
-    ofDrawCircle(target, 10);
+    ofDrawSphere(target, 10);
 }
 
 //--------------------------------------------------------------

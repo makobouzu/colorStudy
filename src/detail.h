@@ -86,13 +86,19 @@ inline glm::vec3 polygonIntersection(const glm::vec3& target, const std::vector<
     }
         
 //  y = cx + d
-        float c, d;
+    float c, d;
+    if(target.x != emphasis.x){
         c = (target.y - emphasis.y)/(target.x - emphasis.x);
         d = -1*(target.y - emphasis.y)/(target.x - emphasis.x) * emphasis.x + emphasis.y;
+    }else{
+        c = (target.y - emphasis.y);
+        d = -1*(target.y - emphasis.y) * emphasis.x + emphasis.y;
+    }
+    
     
         intersection.x = (d - b)/(a - c);
         intersection.y = (a*d - b*c)/(a - c);
-        intersection.z = 1.0;
+        intersection.z = pos1.z;
         
     return intersection;
 }

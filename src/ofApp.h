@@ -13,5 +13,7 @@ public:
     void mousePressed(int x, int y, int button);
     
 private:
-		
+    
+    glm::vec3 emphasisPosition;
+    ofColor emphasisColor;
 };
