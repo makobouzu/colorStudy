@@ -24,6 +24,29 @@ inline ofColor findColor(const std::vector<VertexColorPair>& vertex, const glm::
     color = (*findPos).second;
     return color;
 }
+
+inline float distance(const glm::vec3& pos1, const glm::vec3& pos2){
+    float distance;
+    distance = sqrt(pow(pos2.x - pos1.x, 2.0) + pow(pos2.y - pos1.y, 2.0) + pow(pos2.z - pos1.z, 2.0));
+    return distance;
+}
+
+inline bool dividingPoint(const glm::vec3& intersection, const glm::vec3& pos1, const glm::vec3& pos2){
+    float distance = detail::distance(pos1, pos2);
+    float pos1Tointer = detail::distance(pos1, intersection);
+    float pos2Tointer = detail::distance(pos2, intersection);
+    float ratio1 = pos1Tointer / distance;
+    float ratio2 = pos2Tointer / distance;
+    
+    if(int(distance) == int(pos1Tointer+pos2Tointer)){
+        //intersectionは内分点
+        return true;
+    }else{
+        //intersectionは外分点
+        return false;
+    }
+}
+
 }
 
 //--------------------------------------------------------------
@@ -47,7 +70,7 @@ inline ofColor emphasisCol(const std::vector<VertexColorPair>& vertex){
 }
 
 //output nearest 2 vertex
-inline std::vector<glm::vec3> neighborVertex(const glm::vec3& target, const std::vector<VertexColorPair>& vertex){
+inline std::vector<glm::vec3> neighborVertex(const glm::vec3& target, const std::vector<VertexColorPair>& vertex, int num){
     std::vector<std::pair<glm::vec3, float>> vertexDistance;
     
     for(auto i = 0; i < vertex.size(); ++i){
@@ -58,7 +81,7 @@ inline std::vector<glm::vec3> neighborVertex(const glm::vec3& target, const std:
     std::sort(vertexDistance.begin(), vertexDistance.end(), detail::comparePair);
     
     std::vector<glm::vec3> neighbor;
-    int size = int(vertexDistance.size())-2;
+    int size = int(vertexDistance.size())-num;
     for(auto i = 0; i < size; ++i){
         vertexDistance.pop_back();
     }
@@ -99,8 +122,38 @@ inline glm::vec3 polygonIntersection(const glm::vec3& target, const std::vector<
         intersection.x = (d - b)/(a - c);
         intersection.y = (a*d - b*c)/(a - c);
         intersection.z = pos1.z;
-        
-    return intersection;
+
+    if(detail::dividingPoint(intersection, pos1, pos2)){
+        return intersection;
+    }else{
+        pos1  = neighbor.at(0);
+        pos2  = neighbor.at(2);
+
+        //  y = ax + b or y = b
+        float a, b;
+        if(pos1.x != pos2.x){
+            a = (pos2.y - pos1.y)/(pos2.x - pos1.x);
+            b = -1*(pos2.y - pos1.y)/(pos2.x - pos1.x) * pos1.x + pos1.y;
+        }else{
+            a = pos2.y - pos1.y;
+            b = -1*(pos2.y - pos1.y) * pos1.x + pos1.y;
+        }
+
+        //  y = cx + d
+        float c, d;
+        if(target.x != emphasis.x){
+            c = (target.y - emphasis.y)/(target.x - emphasis.x);
+            d = -1*(target.y - emphasis.y)/(target.x - emphasis.x) * emphasis.x + emphasis.y;
+        }else{
+            c = (target.y - emphasis.y);
+            d = -1*(target.y - emphasis.y) * emphasis.x + emphasis.y;
+        }
+
+        intersection.x = (d - b)/(a - c);
+        intersection.y = (a*d - b*c)/(a - c);
+        intersection.z = pos1.z;
+        return intersection;
+    }
 }
 
 inline ofColor intersectionColor(const glm::vec3& intersection, const std::vector<VertexColorPair>& vertex, const std::vector<glm::vec3>& neighbor){
@@ -112,8 +165,8 @@ inline ofColor intersectionColor(const glm::vec3& intersection, const std::vecto
     ofColor pos2Col = detail::findColor(vertex, pos2);
     
     ofColor color;
-    float disLine = sqrt(pow(pos2.x - pos1.x, 2.0) + pow(pos2.y - pos1.y, 2.0) + pow(pos2.z - pos1.z, 2.0));
-    float pos1inter = sqrt(pow(pos1.x - intersection.x, 2.0) + pow(pos1.y - intersection.y, 2.0) + pow(pos1.z - intersection.z, 2.0));
+    float disLine = detail::distance(pos1, pos2);
+    float pos1inter = detail::distance(intersection, pos1);
     float ratio = pos1inter / disLine;
     
     if(ratio > 1){
@@ -128,8 +181,8 @@ inline ofColor intersectionColor(const glm::vec3& intersection, const std::vecto
 inline ofColor targetColor(const glm::vec3& target, const glm::vec3& intersection, const ofColor& interCol, const glm::vec3& point, const ofColor pointCol){
     
     ofColor color;
-    float distance = sqrt(pow(intersection.x - point.x, 2.0) + pow(intersection.y - point.y, 2.0) + pow(intersection.z - point.z, 2.0));
-    float point2target = sqrt(pow(point.x - target.x, 2.0) + pow(point.y - target.y, 2.0) + pow(point.z - target.z, 2.0));
+    float distance = detail::distance(point, intersection);
+    float point2target = detail::distance(target, point);
     float ratio = point2target / distance;
     
     if(ratio > 1){
@@ -141,6 +194,5 @@ inline ofColor targetColor(const glm::vec3& target, const glm::vec3& intersectio
 }
 
 }//namespace Calculation
-
 
 #endif /* detail_h */
